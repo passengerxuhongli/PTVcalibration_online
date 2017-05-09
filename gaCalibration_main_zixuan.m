@@ -37,10 +37,45 @@ end
 paracalibtag=[tag74(1),tag99(1),taglc(1)]
 TARGET=importdata('TARGET.mat')
 
-    path = [pathname  filename];
+    path = [pathname  filename];   
+ %% try to openning a correct edition vissim   
+    try
     Vissim = actxserver('VISSIM.Vissim-64.900'); % Start Vissim
+    catch
+        try
+        Vissim = actxserver('VISSIM.Vissim-32.900'); % Start Vissim
+        catch
+            try
+            Vissim = actxserver('VISSIM.Vissim-64.800'); % Start Vissim
+            catch
+                try
+                Vissim = actxserver('VISSIM.Vissim-32.800'); % Start Vissim  
+                catch
+                  try
+                  Vissim = actxserver('VISSIM.Vissim-64.700'); % Start Vissim      
+                  catch
+                      try
+                      Vissim = actxserver('VISSIM.Vissim-32.700'); % Start Vissim      
+                      catch
+                          try
+                          Vissim = actxserver('VISSIM.Vissim-64.600'); % Start Vissim        
+                          catch
+                              try
+                              Vissim = actxserver('VISSIM.Vissim-32.600'); % Start Vissim          
+                              catch
+                                  try
+                                   Vissim = actxserver('VISSIM.Vissim.540'); % Start Vissim         
+                                  end
+                              end
+                          end
+                      end
+                  end
+                end    
+            end
+        end
+    end
     Vissim.LoadNet(path);
-    
+
 % Connector route
 lk = Vissim.net.Links.GetAll;
 isConnector = []; link_attribute=[];
@@ -68,7 +103,11 @@ sprintf('db_def_index=%d\n',db_def_index)
 wdb = db{db_def_index};%道路均有Wiedeman99/74,和换道参数。
 %Wiedeman 99
 cc0 = wdb.AttValue('W99cc0');
+try
 cc1 = wdb.AttValue('W99cc1Distr');
+catch
+cc1 = wdb.AttValue('W99cc1');   
+end
 cc2 = wdb.AttValue('W99cc2');
 cc4 = wdb.AttValue('W99cc4');
 cc5 = wdb.AttValue('W99cc5');
@@ -126,9 +165,6 @@ Veh_Delay = Vissim.Net.DelayMeasurements.GetAll;
 delay_number = size(Veh_Delay,1);
 delayreal = zeros(length(delay_number),3);
 for  Veh_Delay_number=1:delay_number
-% Veh_Delay_measurement = Vissim.net.DelayMeasurements.ItemByKey(Veh_Delay_number);
-% Delay(Veh_Delay_number) = get(Veh_Delay_measurement, 'AttValue', 'VehDelay(Avg,Avg,All)');
-% disp(['Average Delay of all simulations and time intervals \n #',num2str(Veh_Delay_number),':',32,num2str(Delay(Veh_Delay_number))]) % char(32) is whitespace
 disp(['Average Delay of all simulations and time intervals \n #',num2str(Veh_Delay_number),':']); 
 delayreal(Veh_Delay_number,1) = Veh_Delay_number;
 delayreal(Veh_Delay_number,2) = input('请输入当前编号所代表路径延误的真实值s:');
@@ -144,8 +180,6 @@ if QUEUEMAX==1
 QC = Vissim.net.QueueCounters.GetAll;
 m=1;
 for QC_number = 1:size(QC,1)
-%  maxQ(m) = get(Vissim.Net.QueueCounters.ItemByKey(QC_number),'AttValue', 'QLenMax(Avg, Avg)');
-%  disp(['Average maximum Queue length of all simulations and time intervals of Queue Counter\n #',num2str(QC_number),':',32,num2str(maxQ(m))]) % char(32) is whitespace
  disp(['Average maximum Queue length of all simulations and time intervals of Queue Counter\n #',num2str(QC_number),':']);
  maxQreal(m,1) = QC_number;
  maxQreal(m,2) = input('请输入当前编号所代表车道最大排队长度的真实值m:');
@@ -161,8 +195,6 @@ if QUEUEMEAN==1
 QC = Vissim.net.QueueCounters.GetAll;
 m=1;
 for QC_number = 1:size(QC,1)
-% MEANQ(m) = get(Vissim.Net.QueueCounters.ItemByKey(QC_number),'AttValue', 'QLen(Max, Avg)');
-% disp(['Average MEAN Queue length of all simulations and time intervals of Queue Counter #',num2str(QC_number),':',32,num2str(MEANQ(m))]) % char(32) is whitespace
 disp(['Average MEAN Queue length of all simulations and time intervals of Queue Counter #',num2str(QC_number),':'])
  MEANQreal(m,1) = QC_number;
  MEANQreal(m,2) = input('请输入当前编号所代表车道平均排队长度的真实值m:');
@@ -271,9 +303,13 @@ end
     ub = ub(1,parameterlist)
     lb = lb(1,parameterlist) 
     parameters = [{'W99cc0'},{'W99cc1Distr'},{'W99cc2'},{'W99cc3'},{'W99cc4'},{'W99cc5'},{'W99cc6'},{'W99cc7'},{'W99cc8'},{'W99cc9'},{'ObsrvdVehs'},{'LookBackDistMax'},{'LookAheadDistMax'},{'StandDist'},...
-{'DecelRedDistOwn'},{'AccDecelOwn'},{'MinHdwy'},{'SafDistFactLnChg'},{'CoopDecel'},{'CoopLnChgSpeedDiff'}]'
+{'DecelRedDistOwn'},{'AccDecelOwn'},{'MinHdwy'},{'SafDistFactLnChg'},{'CoopDecel'},{'CoopLnChgSpeedDiff'}]';
  parameters = parameters(parameterlist);
  save('parameters.mat','parameters');    
+  parameters1 = [{'W99cc0'},{'W99cc1'},{'W99cc2'},{'W99cc3'},{'W99cc4'},{'W99cc5'},{'W99cc6'},{'W99cc7'},{'W99cc8'},{'W99cc9'},{'ObsrvdVehs'},{'LookBackDistMax'},{'LookAheadDistMax'},{'StandDist'},...
+{'DecelRedDistOwn'},{'AccDecelOwn'},{'MinHdwy'},{'SafDistFactLnChg'},{'CoopDecel'},{'CoopLnChgSpeedDiff'}]';
+ parameters1 = parameters1(parameterlist);
+ save('parameters1.mat','parameters1');    
     end   
     if paracalibtag(2)~=0&paracalibtag(3)==0%wiedeman99
     numberOfVariables = sum(tag99)-1;
@@ -283,9 +319,12 @@ end
     parameterlist = find(parameterlist==1);
     ub = ub(1,parameterlist)
     lb = lb(1,parameterlist) 
-    parameters = [{'W99cc0'},{'W99cc1Distr'},{'W99cc2'},{'W99cc3'},{'W99cc4'},{'W99cc5'},{'W99cc6'},{'W99cc7'},{'W99cc8'},{'W99cc9'},{'ObsrvdVehs'},{'LookBackDistMax'},{'LookAheadDistMax'},{'StandDist'}]'
+    parameters = [{'W99cc0'},{'W99cc1Distr'},{'W99cc2'},{'W99cc3'},{'W99cc4'},{'W99cc5'},{'W99cc6'},{'W99cc7'},{'W99cc8'},{'W99cc9'},{'ObsrvdVehs'},{'LookBackDistMax'},{'LookAheadDistMax'},{'StandDist'}]';
     parameters = parameters(parameterlist);   
     save('parameters.mat','parameters');    
+    parameters1 = [{'W99cc0'},{'W99cc1'},{'W99cc2'},{'W99cc3'},{'W99cc4'},{'W99cc5'},{'W99cc6'},{'W99cc7'},{'W99cc8'},{'W99cc9'},{'ObsrvdVehs'},{'LookBackDistMax'},{'LookAheadDistMax'},{'StandDist'}]';
+    parameters1 = parameters1(parameterlist);   
+    save('parameters1.mat','parameters1');      
     end
         numberOfVariables
 FitnessFunction =@GaCalib_zixuan;

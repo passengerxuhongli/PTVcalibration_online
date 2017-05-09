@@ -3,8 +3,6 @@ evaluation = zeros(4,1);
 global Vissim
     global wdb 
     global zhongqun
-    global lk
-    global isConnector
     global TRAVELTIME
     global DELAY
     global QUEUEMAX 
@@ -17,8 +15,10 @@ global Vissim
     global MEANQreal     
     global paracalibtag 
     global parameterlist     
-    global parameters   
+    global parameters  
+    global parameters1     
     parameters = importdata('parameters.mat')
+    parameters1 = importdata('parameters1.mat')
  	fprintf(['GA...生成新的一个种群（一代一共20个个体） ',num2str(zhongqun),'\n\n']);
     zhongqun = zhongqun+1;
     %% ================= 1.SET PARAMS ================= 
@@ -27,13 +27,11 @@ if  paracalibtag(1)~=0&paracalibtag(3)~=0
  a = drivingBehaviorParams ;%attributes renew
  num = length(parameterlist);
  for j = 1:num
-%     if parameterlist(j)~=
+     try
       wdb.set('AttValue',parameters{j,1},a(j));  
-%     else
-%      for iLk = isConnector
-%         lk{iLk}.set('AttValue',p(j),a(j));
-%      end 
-%     end
+     catch
+      wdb.set('AttValue',parameters1{j,1},a(j));
+     end
 end
 end
 
@@ -41,34 +39,40 @@ if  paracalibtag(1)~=0&paracalibtag(3)==0
  a = drivingBehaviorParams ;%attributes renew
  num = length(parameterlist);
  for j = 1:num
-   wdb.set('AttValue',parameters{j,1},a(j));   
+     try
+      wdb.set('AttValue',parameters{j,1},a(j));  
+     catch
+      wdb.set('AttValue',parameters1{j,1},a(j));
+     end
 end
 end
 if  paracalibtag(2)~=0&paracalibtag(3)~=0
  a = drivingBehaviorParams ;%attributes renew
  num = length(parameterlist);        
  for j = 1:num
-%     if parameterlist(j)~=
-        wdb.set('AttValue',parameters{j,1},a(j));  
-%     else
-%      for iLk = isConnector
-%         lk{iLk}.set('AttValue',p(j),a(j));
-%      end 
-%     end
+     try
+      wdb.set('AttValue',parameters{j,1},a(j));  
+     catch
+      wdb.set('AttValue',parameters1{j,1},a(j));
+     end 
 end
 end
       
 if  paracalibtag(2)~=0&paracalibtag(3)==0%wiedeman99
  a = drivingBehaviorParams ;%attributes renew
  num = length(parameterlist);
- for j = 1:num
-   wdb.set('AttValue',parameters{j,1},a(j));  
+ for j = 1:num   
+  try
+  wdb.set('AttValue',parameters{j,1},a(j));  
+ catch
+  wdb.set('AttValue',parameters1{j,1},a(j));
+ end  
 end
 end         
  
 %% ================= 2.SIMULATIONS  =================     
-End_of_simulation= 1200;%3600
-set(Vissim.Simulation, 'AttValue', 'SimPeriod', End_of_simulation);
+% End_of_simulation= 1200;%3600
+% set(Vissim.Simulation, 'AttValue', 'SimPeriod', End_of_simulation);
     Vissim.Simulation.RunContinuous;
     %% ================= 3.RESULTS ================= 
 % travel time

@@ -17,11 +17,11 @@ global Vissim
     global maxQreal 
     global MEANQreal        
     global paracalibtag 
-    global parametersname
-    global db_def_index
+    global edition_number
  	fprintf(['GA...生成新的一个种群（一代一共20个个体） ',num2str(zhongqun),'\n\n']);
     zhongqun = zhongqun+1;
     %% ================= 1.SET PARAMS ================= 
+if edition_number==0
       if  (paracalibtag(1)~=0&paracalibtag(3)~=0)
     a = drivingBehaviorParams ;%attributes renew
  sprintf('=================vissim parameters %3.0f =================\nW74ax=%2.2f, W74bxAdd=%2.2f,W74bxMult = %2.2f, LookBackDistMax =%2.2f, CC5=%2.2f\n minD=%2.2f, safe=%2.2f, maxCD = %2.2f, maxSD =%2.2f, lcDist = %2.2f\n\nSimulating...\n',...
@@ -52,7 +52,11 @@ wdb.set('AttValue','W74ax',a(1));
  sprintf('=================vissim parameters %3.0f =================\nCC0=%2.2f, CC1=%2.2f, CC2 = %2.2f, CC4 =%2.2f, CC5=%2.2f\nminD=%2.2f, safe=%2.2f, maxCD = %2.2f, maxSD =%2.2f, lcDist = %2.2f\n\nSimulating...\n',...
        a(1),a(2),a(3),-a(4),a(4),a(5),a(6),a(7),a(8),a(9));
 wdb.set('AttValue','W99cc0',a(1)); % cc0
+try
     wdb.set('AttValue','W99cc1Distr',a(2)); % cc1
+catch
+    wdb.set('AttValue','W99cc1',a(2)); % cc1
+end
     wdb.set('AttValue','W99cc2',a(3)); % cc2
     wdb.set('AttValue','W99cc4',-a(4)); % cc4
     wdb.set('AttValue','W99cc5',a(4)); % cc5
@@ -69,17 +73,65 @@ wdb.set('AttValue','W99cc0',a(1)); % cc0
  sprintf('=================vissim parameters %3.0f =================\nCC0=%2.2f, CC1=%2.2f, CC2 = %2.2f, CC4 =%2.2f, CC5=%2.2f\n\nSimulating...\n',...
        a(1),a(2),a(3),-a(4),a(4));
 wdb.set('AttValue','W99cc0',a(1)); % cc0
+try
     wdb.set('AttValue','W99cc1Distr',a(2)); % cc1
+catch
+    wdb.set('AttValue','W99cc1',a(2)); % cc1
+end 
     wdb.set('AttValue','W99cc2',a(3)); % cc2
     wdb.set('AttValue','W99cc4',-a(4)); % cc4
     wdb.set('AttValue','W99cc5',a(4)); % cc5
       end           
-
+else
+      if edition_number==540
+            if  (paracalibtag(1)~=0&paracalibtag(3)~=0)
+                a = drivingBehaviorParams ;%attributes renew
+             sprintf('=================vissim parameters %3.0f =================\nAXADD=%2.2f, BXADD=%2.2f,BXMULT = %2.2f, LANECHANGEDISTANCE = %2.2f\n\nSimulating...\n',...
+                   a(1),a(2),a(3),a(4));
+            wdb.set('AttValue','AXADD',a(1)); 
+                wdb.set('AttValue','BXADD',a(2));
+                wdb.set('AttValue','BXMULT',a(3));  
+                for iLk = isConnector
+                    lk.Item(iLk).set('AttValue','LANECHANGEDISTANCE',a(4));
+                end
+            end
+                       if  paracalibtag(1)~=0&paracalibtag(3)==0
+                   a = drivingBehaviorParams ;%attributes renew
+                   sprintf('=================vissim parameters %3.0f =================\nAXADD=%2.2f, BXADD=%2.2f,BXMULT = %2.2f...\n',...
+                   a(1),a(2),a(3));
+                wdb.set('AttValue','AXADD',a(1)); 
+                wdb.set('AttValue','BXADD',a(2));
+                wdb.set('AttValue','BXMULT',a(3)); 
+                       end
+                  if  paracalibtag(2)~=0&paracalibtag(3)~=0
+                a = drivingBehaviorParams ;%attributes renew
+             sprintf('=================vissim parameters %3.0f =================\nCC0=%2.2f, CC1=%2.2f, CC2 = %2.2f, CC4 =%2.2f,CC5=%2.2f,LANECHANGEDISTANCE = %2.2f\n\nSimulating...\n',...
+                   a(1),a(2),a(3),-a(4),a(4),a(5));
+            wdb.set('AttValue','cc0',a(1)); % cc0
+                wdb.set('AttValue','cc1',a(2)); % cc1
+                wdb.set('AttValue','cc2',a(3)); % cc2
+                wdb.set('AttValue','cc4',-a(4)); % cc4
+                wdb.set('AttValue','cc5',a(4)); % cc5
+                for iLk = isConnector
+                    lk.Item(iLk).set('AttValue','LANECHANGEDISTANCE',a(5));
+                end
+                  end
+                  if  paracalibtag(2)~=0&paracalibtag(3)==0%wiedeman99
+                a = drivingBehaviorParams ;%attributes renew
+             sprintf('=================vissim parameters %3.0f =================\nCC0=%2.2f, CC1=%2.2f, CC2 = %2.2f, CC4 =%2.2f, CC5=%2.2f\n\nSimulating...\n',...
+                   a(1),a(2),a(3),-a(4),a(4));
+            wdb.set('AttValue','cc0',a(1)); % cc0
+                wdb.set('AttValue','cc1',a(2)); % cc1
+                wdb.set('AttValue','cc',a(3)); % cc2
+                wdb.set('AttValue','cc4',-a(4)); % cc4
+                wdb.set('AttValue','cc5',a(4)); % cc5
+                  end           
+      end
+end
 %% ================= 2.SIMULATIONS  =================     
-% End_of_simulation= 1200;%3600
-% set(Vissim.Simulation, 'AttValue', 'SimPeriod', End_of_simulation);
     Vissim.Simulation.RunContinuous;
     %% ================= 3.RESULTS ================= 
+if  edition_number==0  
 % travel time
 if TRAVELTIME==1
 Veh_TT_attributes = Vissim.net.VehicleTravelTimeMeasurement.GetAll;%所有行程时间属性
@@ -95,7 +147,6 @@ end
 else 
   evaluation1 =  0.0;  
 end
- 
 % Delay
 if DELAY==1
 Veh_Delay = Vissim.Net.DelayMeasurements.GetAll;
@@ -111,7 +162,6 @@ Delay = Delay';
 else
    evaluation2 =  0.0; 
 end
-
  % Queue length
 if QUEUEMAX==1
 QC = Vissim.net.QueueCounters.GetAll;
@@ -141,7 +191,6 @@ MEANQ = MEANQ';
 else
 evaluation4 =  0.0;    
 end
-
 %  traffic capacity
 if CAPACITY==1
 dcm = Vissim.net.DataCollectionMeasurements.GetAll;%所有datacollection属性
@@ -156,7 +205,87 @@ end
 else 
   evaluation5 =  0.0;  
 end
- 
+else
+    if edition_number==540
+        % travel time
+        if TRAVELTIME==1
+        Veh_TT_attributes = Vissim.net.TravelTimes;%所有行程时间属性
+        T_travel_number = Veh_TT_attributes.Count;
+        for  Veh_TT_measurement_number=1:T_travel_number
+        Veh_TT_measurement = Vissim.net.TravelTimes.GetTravelTimeByNumber(Veh_TT_measurement_number);
+        TT(Veh_TT_measurement_number) = Veh_TT_measurement.GetResult(360, 'NVEHICLES', '', 0);
+        disp(['Average T_travel of all simulations and time intervals \n #',num2str(Veh_TT_measurement_number),':',32,num2str(TT(Veh_TT_measurement_number))]) % char(32) is whitespace
+        end
+         T_travel=TT';
+            evaluation1 = sum(T_travel.*traveltimereal(:,3))/sum(traveltimereal(:,3));
+            sprintf('T_travel=%2.2f\n\n',T_travel);  
+        else 
+          evaluation1 =  0.0;  
+        end
+        % Delay
+        if DELAY==1
+        Veh_Delay = Vissim.Net.Delays;
+        delay_number = Veh_Delay.Count;
+        for  Veh_Delay_number=1:delay_number
+        Veh_Delay_measurement = Vissim.net.Delays.GetDelayByNumber(Veh_Delay_number);
+        Delay(Veh_Delay_number) = delay.GetResult(360, 'DELAY', '', 0);
+         disp(['Average Delay of all simulations and time intervals \n #',num2str(Veh_Delay_number),':',32,num2str(Delay(Veh_Delay_number))]) % char(32) is whitespace
+        end
+        Delay = Delay';
+            evaluation2 = sum(Delay.*delayreal(:,3))/sum(delayreal(:,3));
+                sprintf('Average delay \n=%2.2f\n\n',Delay);
+        else
+           evaluation2 =  0.0; 
+        end
+         % Queue length
+        if QUEUEMAX==1
+        QC = Vissim.net.QueueCounters;
+        m=1;
+        for QC_number = 1:QC.Count
+        queuecounter = vissim.Net.QueueCounters.GetQueueCounterByNumber(QC_number);
+        maxQ(m) = queuecounter.GetResult(600, 'MAX');
+         disp(['Average maximum Queue length of all simulations and time intervals of Queue Counter\n #',num2str(QC_number),':',32,num2str(maxQ(m))]) % char(32) is whitespace
+        m=m+1;
+        end
+        maxQ= maxQ';
+            evaluation3 = sum(maxQ.*maxQreal(:,3))/sum(maxQreal(:,3));
+         sprintf('Average maximum Queue =%2.2f\n\n',evaluation3);
+        else
+        evaluation3 =  0.0;    
+        end
+        if QUEUEMEAN==1
+        QC = Vissim.net.QueueCounters;
+        m=1;
+        for QC_number = 1:QC.Count
+        queuecounter = vissim.Net.QueueCounters.GetQueueCounterByNumber(QC_number);
+        MEANQ(m) = queuecounter.GetResult(360, 'MEAN');
+        disp(['Average MEAN Queue length of all simulations and time intervals of Queue Counter #',num2str(QC_number),':',32,num2str(MEANQ(m))]) % char(32) is whitespace
+        m=m+1;
+        end
+        MEANQ = MEANQ';
+           evaluation4 = sum(MEANQ.*MEANQreal(:,3))/sum(MEANQreal(:,3));
+         sprintf('Average average Queue =%2.2f\n\n',evaluation4);
+        else
+        evaluation4 =  0.0;    
+        end
+        
+        %  traffic capacity
+        if CAPACITY==1
+        dcm = Vissim.net.DataCollections;%所有datacollection属性
+        dcm_number = dcm.Count;
+        for  dcm_measurement_number=1:dcm_number
+        datacollection = vissim.Net.DataCollections.GetDataCollectionByNumber(QC_number);   
+        No_Veh(dcm_measurement_number) = datacollection.GetResult('NVEHICLES', 'SUM', 0); % number of vehicles
+        disp(['traffic flows of all simulations and time intervals \n #',num2str(dcm_measurement_number),':',32,num2str(No_Veh(dcm_measurement_number))]) % char(32) is whitespace
+        end
+         trafficflow=No_Veh';
+            evaluation5 = sum(double(trafficflow).*capacityreal(:,3))/sum(capacityreal(:,3));%%%%转换一下数据格式
+            sprintf('trafficflow=%2.2f\n\n',trafficflow);  
+        else 
+          evaluation5 =  0.0;  
+        end        
+    end
+end
     fprintf('\n========================================\n\n')
    evaluation = [evaluation1;evaluation2;evaluation3;evaluation4;evaluation5]
     
