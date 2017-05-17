@@ -30,52 +30,54 @@ global indectorweighte
 paracalibtag=importdata('paracalibtag.mat')
 TARGET=importdata('TARGET.mat')
 global edition_number
-edition_number = 0;  
+edition_number = 0;   
  %% try to openning a correct edition vissim   
+
  
-      Vissim = actxserver('VISSIM.Vissim.540'); % Start Vissim    
-      Vissim.LoadNet('C:\Users\Administrator\Desktop\PTV_debug\Re_TESS开发第37次会议纪要20170120\汇出.inp');
-%     try
-%     Vissim = actxserver('VISSIM.Vissim-64.900'); % Start Vissim
-%     catch
-%         try
-%         Vissim = actxserver('VISSIM.Vissim-32.900'); % Start Vissim
-%         catch
-%             try
-%             Vissim = actxserver('VISSIM.Vissim-64.800'); % Start Vissim
-%             catch
-%                 try
-%                 Vissim = actxserver('VISSIM.Vissim-32.800'); % Start Vissim  
-%                 catch
-%                   try
-%                   Vissim = actxserver('VISSIM.Vissim-64.700'); % Start Vissim      
-%                   catch
-%                       try
-%                       Vissim = actxserver('VISSIM.Vissim-32.700'); % Start Vissim      
-%                       catch
-%                           try
-%                           Vissim = actxserver('VISSIM.Vissim-64.600'); % Start Vissim        
-%                           catch
-%                               try
-%                               Vissim = actxserver('VISSIM.Vissim-32.600'); % Start Vissim          
-%                               catch
-%                                   try
-%                                    Vissim = actxserver('VISSIM.Vissim.540'); % Start Vissim    
-%                                    edition_number = 540;
-%                                   end
-%                               end
-%                           end
-%                       end
-%                   end
-%                 end    
-%             end
-%         end
-%     end
-%     path = [pathname  filename]; 
-%     Vissim.LoadNet(path);
-%     
-    
-    
+    try
+    Vissim = actxserver('VISSIM.Vissim-64.900'); % Start Vissim
+    catch
+        try
+        Vissim = actxserver('VISSIM.Vissim-32.900'); % Start Vissim
+        catch
+            try
+            Vissim = actxserver('VISSIM.Vissim-64.800'); % Start Vissim
+            catch
+                try
+                Vissim = actxserver('VISSIM.Vissim-32.800'); % Start Vissim  
+                catch
+                  try
+                  Vissim = actxserver('VISSIM.Vissim-64.700'); % Start Vissim      
+                  catch
+                      try
+                      Vissim = actxserver('VISSIM.Vissim-32.700'); % Start Vissim      
+                      catch
+                          try
+                          Vissim = actxserver('VISSIM.Vissim-64.600'); % Start Vissim        
+                          catch
+                              try
+                              Vissim = actxserver('VISSIM.Vissim-32.600'); % Start Vissim          
+                              catch
+                                  try
+                                   Vissim = actxserver('VISSIM.Vissim.540'); % Start Vissim 
+                                   edition_number = 540;
+                                  end
+                              end
+                          end
+                      end
+                  end
+                end    
+            end
+        end
+    end
+
+ path = [pathname  filename]; 
+  Vissim.LoadNet(path);
+  try
+ path1 = [pathname  'vissim.ini'];
+  Vissim.LoadLayout(path1);
+  end
+  
 % Read Link Name   判断路段属性：城市道路还是高速公路，自行车道，人行道等。 
 % Connector route
 isConnector = []; link_attribute=[];
@@ -151,7 +153,7 @@ maxCD = wdb.AttValue('CoopDecel');
 maxSD = wdb.AttValue('CoopLnChgSpeedDiff');
 lcDist = lk{isConnector(1)}.AttValue('LnChgDist');
 %lane change
-DecelRedDistOwn = wdb.AttValue('W74bxAdd');
+DecelRedDistOwn = wdb.AttValue('DecelRedDistOwn');
 AccDecelOwn = wdb.AttValue('AccDecelOwn');
 DiffusTm = wdb.AttValue('DiffusTm');
 MinHdwy = wdb.AttValue('MinHdwy');
@@ -279,10 +281,9 @@ else
         traveltimereal(Veh_TT_measurement_number,2) = input('请输入当前编号所代表路径行程时间的真实值s:');
         traveltimereal(Veh_TT_measurement_number,3) = input('请输入当前编号所代表路径行程时间的权重（1-10的数）:');
         end
-         traveltimereal
         disp(['加权后的行程时间 \n:']) 
-        traveltimerealWeightedaverage  =  sum(traveltimereal(:,2).*traveltimereal(:,3))/sum(traveltimereal(:,3))
-        TARGET(1) = traveltimerealWeightedaverage;
+        traveltimerealWeightedaverage  =  sum(traveltimereal(:,2).*traveltimereal(:,3))/sum(traveltimereal(:,3));
+        TARGET(1) = traveltimerealWeightedaverage
         end
         % Delay
         if DELAY==1
@@ -295,10 +296,9 @@ else
         delayreal(Veh_Delay_number,2) = input('请输入当前编号所代表路径延误的真实值s:');
         delayreal(Veh_Delay_number,3) = input('请输入当前编号所代表路径延误的权重（1-10的数）:');
         end
-        delayreal
         disp(['加权后的延误 \n:']) 
-        delayrealWeightedaverage  = sum(delayreal(:,2).*delayreal(:,3))/sum(delayreal(:,3)) 
-         TARGET(2) = delayrealWeightedaverage;
+        delayrealWeightedaverage  = sum(delayreal(:,2).*delayreal(:,3))/sum(delayreal(:,3)); 
+         TARGET(2) = delayrealWeightedaverage
         end
          % Queue length
         if QUEUEMAX==1
@@ -311,10 +311,9 @@ else
          maxQreal(m,3) = input('请输入当前编号所代表车道的权重（1-10的数）:');
          m=m+1;
         end
-        maxQreal
         disp(['加权后的最大排队长度m \n:']) 
-        maxQrealWeightedaverage = sum(maxQreal(:,2).*maxQreal(:,3))/sum(maxQreal(:,3))
-         TARGET(3) = maxQrealWeightedaverage;    
+        maxQrealWeightedaverage = sum(maxQreal(:,2).*maxQreal(:,3))/sum(maxQreal(:,3));
+         TARGET(3) = maxQrealWeightedaverage 
         end
         if QUEUEMEAN==1
         QC = Vissim.net.QueueCounters;
@@ -326,10 +325,9 @@ else
          MEANQreal(m,3) = input('请输入当前编号所代表车道的权重（1-10的数）:');
         m=m+1;
         end
-        MEANQreal
         disp(['加权后的平均排队长度m \n:']) 
-        MEANQrealWeightedaverage = sum(MEANQreal(:,2).*MEANQreal(:,3))/sum(MEANQreal(:,3))
-        TARGET(4) = MEANQrealWeightedaverage;  
+        MEANQrealWeightedaverage = sum(MEANQreal(:,2).*MEANQreal(:,3))/sum(MEANQreal(:,3));
+        TARGET(4) = MEANQrealWeightedaverage 
         end
         % traffic capacity
         % Data collection
@@ -340,13 +338,12 @@ else
         for  dcm_measurement_number=1:dcm_number
         disp(['traffic flow of all simulations and time intervals \n #',num2str(dcm_measurement_number),':']);
         capacityreal(dcm_measurement_number,1) = dcm_measurement_number;
-        capacityreal(dcm_measurement_number,2) = input('请输入当前编号所代表路段流量的真实值s:');
+        capacityreal(dcm_measurement_number,2) = input('请输入当前编号所代表路段流量的真实值VEH/H:');
         capacityreal(dcm_measurement_number,3) = input('请输入当前编号所代表路段流量的权重（1-10的数）:');
         end
-         capacityreal
         disp(['加权后的traffic flow \n:']) 
-        capacityrealWeightedaverage  =  sum(capacityreal(:,2).*capacityreal(:,3))/sum(capacityreal(:,3))
-        TARGET(5) = capacityrealWeightedaverage;
+        capacityrealWeightedaverage  =  sum(capacityreal(:,2).*capacityreal(:,3))/sum(capacityreal(:,3));
+        TARGET(5) = capacityrealWeightedaverage
         end        
     end
 end
@@ -379,7 +376,7 @@ end
   end    
     indectorweighte = indectorweighte(indectorweighte(:,1)~=0,1);
  else
-       indectorweighte =ones(length(TARGET>0),1);  
+       indectorweighte =ones(sum(TARGET>0),1);  
   end 
      else
        indectorweighte =1;  
@@ -440,9 +437,6 @@ else
     end
 end
     
-    
-    
-    
         numberOfVariables
     FitnessFunction =@GaCalib_direct;
     if tag==0 
@@ -452,9 +446,14 @@ end
      options = gaoptimset('PlotFcn',{@gaplotscorediversity , @gaplotbestf},'PopulationSize',20,'Generations',30,'FitnessLimit',0.05);%每一代得分的直方图得分和plots the best function value versus generation.
     [X,FVAL,EXITFLAG] = ga(FitnessFunction,numberOfVariables,[],[],[],[],lb,ub,[],options);%ga函数默认一代有20个个体，一共遗传100代。
     end
-% end
+save('drivingparameters_final.mat','X');
+save('ga_evaluation_fval.mat','FVAL');
+save('ga_stopped_reason.mat','EXITFLAG');
 %% ========================================================================
 % End Vissim
-Vissim.release
-    
+if edition_number == 0;  
+Vissim.release;
+else
+  Vissim.simulation.Stop;  
+end
     

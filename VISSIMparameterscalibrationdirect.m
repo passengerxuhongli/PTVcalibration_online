@@ -22,7 +22,7 @@ function varargout = VISSIMparameterscalibrationdirect(varargin)
 
 % Edit the above text to modify the response to help VISSIMparameterscalibrationdirect
 
-% Last Modified by GUIDE v2.5 12-Apr-2017 21:28:16
+% Last Modified by GUIDE v2.5 16-May-2017 13:25:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -244,6 +244,44 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+disp('最终的参数取值')
+ a = importdata('drivingparameters_final.mat')
+ try
+ sprintf('=================vissim parameters %3.0f =================\nW74ax=%2.2f, W74bxAdd=%2.2f,W74bxMult = %2.2f, LookBackDistMax =%2.2f, CC5=%2.2f\n minD=%2.2f, safe=%2.2f, maxCD = %2.2f, maxSD =%2.2f, lcDist = %2.2f\n\nSimulating...\n',...
+       a(1),a(2),a(3),a(4),a(5),a(6),a(7),a(8),a(9));
+ catch try
+ sprintf('=================vissim parameters %3.0f =================\nW74ax=%2.2f, W74bxAdd=%2.2f,W74bxMult = %2.2f, LookBackDistMax =%2.2f\n\nSimulating...\n',...
+       a(1),a(2),a(3),a(4));
+     catch try
+ sprintf('=================vissim parameters %3.0f =================\nCC0=%2.2f, CC1=%2.2f, CC2 = %2.2f, CC4 =%2.2f, CC5=%2.2f\n\nSimulating...\n',...
+       a(1),a(2),a(3),-a(4),a(4));  
+         catch try
+             sprintf('=================vissim parameters %3.0f =================\nAXADD=%2.2f, BXADD=%2.2f,BXMULT = %2.2f, LANECHANGEDISTANCE = %2.2f\n\nSimulating...\n',...
+                   a(1),a(2),a(3),a(4));
+             catch try
+                   sprintf('=================vissim parameters %3.0f =================\nAXADD=%2.2f, BXADD=%2.2f,BXMULT = %2.2f...\n',...
+                   a(1),a(2),a(3));
+                 catch try
+             sprintf('=================vissim parameters %3.0f =================\nCC0=%2.2f, CC1=%2.2f, CC2 = %2.2f, CC4 =%2.2f,CC5=%2.2f,LANECHANGEDISTANCE = %2.2f\n\nSimulating...\n',...
+                   a(1),a(2),a(3),-a(4),a(4),a(5));
+                     catch try
+             sprintf('=================vissim parameters %3.0f =================\nCC0=%2.2f, CC1=%2.2f, CC2 = %2.2f, CC4 =%2.2f, CC5=%2.2f\n\nSimulating...\n',...
+                   a(1),a(2),a(3),-a(4),a(4));  
+                         end
+                     end
+                 end
+             end
+         end
+     end
+ end
+    global evaluationMin
+disp('最终的仿真误差')    
+    evaluationMin
+disp('标定算法GA的评价指标')      
+ FVAL = importdata('ga_evaluation_fval.mat')  
+disp('标定算法GA的停止的原因') 
+ EXITFLAG = importdata('ga_stopped_reason.mat')  
+
 
 
 % --- Executes on button press in radiobutton1.
@@ -332,4 +370,3 @@ end
 save('paracalibtag.mat','paracalibtag')
 save('TARGET.mat','TARGET')
 gaCalibration_main_direct
-

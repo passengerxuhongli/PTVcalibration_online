@@ -129,3 +129,9 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+global parameters 
+parameters = importdata('parameters.mat')
+global parameterlist
+parameterlist = importdata('parameterlist.mat')
+disp('参数P_Value<0.05的参数列表--关键参数')
+ parameters(parameterlist,1) 

@@ -8,7 +8,6 @@ global zhongqun
 zhongqun = 1;
 global lk
 global isConnector
-
     global TRAVELTIME
     global DELAY
     global QUEUEMAX 
@@ -20,25 +19,18 @@ global isConnector
     global MEANQreal  
     global tag
     global indectorweighte
-
 global pathname
 global filename
-global paracalibtag
-paracalibtag = zeros(1,3);
+% global paracalibtag
+% paracalibtag = zeros(1,3);
 global TARGET
 global db_def_index
-global parameterlist
-tag74 = importdata('tag74.mat')
-tag99 = importdata('tag99.mat')
-taglc = importdata('taglc.mat')
-if tag74(1)==1&tag99(1)==1
-    tag74=0;
-end
-paracalibtag=[tag74(1),tag99(1),taglc(1)]
 TARGET=importdata('TARGET.mat')
+global edition_number
+edition_number = 0;  
+global parameterlist
 
-    path = [pathname  filename];   
- %% try to openning a correct edition vissim   
+ %% try to openning a correct edition vissim 
     try
     Vissim = actxserver('VISSIM.Vissim-64.900'); % Start Vissim
     catch
@@ -64,7 +56,8 @@ TARGET=importdata('TARGET.mat')
                               Vissim = actxserver('VISSIM.Vissim-32.600'); % Start Vissim          
                               catch
                                   try
-                                   Vissim = actxserver('VISSIM.Vissim.540'); % Start Vissim         
+                                   Vissim = actxserver('VISSIM.Vissim.540'); % Start Vissim 
+                                   edition_number = 540;
                                   end
                               end
                           end
@@ -74,11 +67,34 @@ TARGET=importdata('TARGET.mat')
             end
         end
     end
-    Vissim.LoadNet(path);
-
+ path = [pathname  filename]; 
+  Vissim.LoadNet(path);
+  try
+ path1 = [pathname  'vissim.ini'];
+  Vissim.LoadLayout(path1);
+  end
+  
+if edition_number == 0; 
+tag74 = importdata('tag74.mat')
+tag99 = importdata('tag99.mat')
+taglc = importdata('taglc.mat')
+if tag74(1)==1&tag99(1)==1
+    tag74=0;
+end
+paracalibtag=[tag74(1),tag99(1),taglc(1)]
+else if edition_number == 540;
+     tag74540 = importdata('tag74540.mat')
+     tag99540 = importdata('tag99540.mat')
+      if tag74540(1)==1&tag99540(1)==1
+         tag74540=0;
+      end
+paracalibtag=[tag74540(1),tag99540(1)]   
+    end
+end
 % Connector route
-lk = Vissim.net.Links.GetAll;
 isConnector = []; link_attribute=[];
+if  edition_number==0
+lk = Vissim.net.Links.GetAll;
 for iLk = 1:size(lk,1)%ÅĞ¶Ï¸ÃÂ·¶ÎÊÇ·ñÎªÁ¬½ÓÆ÷£¬ÈôÊÇÔòºóĞøÖĞ¿ÉÄÜ»á¸Ä±äÆä¡°»»µÀ¾àÀë¡±ÕâÒ»²ÎÊı
     if lk{iLk}.AttValue('IsConn')
         isConnector = [isConnector,iLk];
@@ -86,21 +102,37 @@ for iLk = 1:size(lk,1)%ÅĞ¶Ï¸ÃÂ·¶ÎÊÇ·ñÎªÁ¬½ÓÆ÷£¬ÈôÊÇÔòºóĞøÖĞ¿ÉÄÜ»á¸Ä±äÆä¡°»»µÀ¾àÀ
     link_attribute = [link_attribute, Vissim.net.Links.ItemByKey(lk{iLk}.AttValue('No')).AttValue('LinkBehavType'),iLk];
     end
 end
+else if edition_number==540
+        lk = Vissim.net.Links;
+        for iLk = 1:lk.count%ÅĞ¶Ï¸ÃÂ·¶ÎÊÇ·ñÎªÁ¬½ÓÆ÷£¬ÈôÊÇÔòºóĞøÖĞ¿ÉÄÜ»á¸Ä±äÆä¡°»»µÀ¾àÀë¡±ÕâÒ»²ÎÊı
+            link = lk.Item(iLk);
+            if link.AttValue('CONNECTOR')
+                link_attribute = [link_attribute, lk.GetLinkByNumber(link.AttValue('ID')).AttValue('BEHAVIORTYPE'),iLk];
+            else
+                isConnector = [isConnector,iLk];
+            end
+        end
+    end
+end
+
+if edition_number==0
 % Data collection
 dcm = Vissim.net.DataCollectionMeasurements.GetAll;
-
 % DRIVING BEHAVIOR
 db = Vissim.net.DrivingBehaviors.GetAll;
 db_def_index = str2num(get(Vissim.Net.Links.ItemByKey(1), 'AttValue', 'LinkBehavType'));
 sprintf('db_def_index=%d\n',db_def_index)
-%db_def_indexÎª1-6µÄÊı×Ö£¬
-% 1£ºUrban(motorized)Ö÷Òª¿¼ÂÇWiedman74Ä£ĞÍ£¬4¸ö²ÎÊı({'W74AX'},{'W74BXADD'},{'W74BXMULT'},{'LOOKBACKDISTMAX'})+lane change 5¸ö²ÎÊı
-% 2: right-side rule(motorized)Ö÷Òª¿¼ÂÇWiedman99Ä£ĞÍ£¬5¸ö²ÎÊıcc0 cc1 cc2 cc4 cc5£¨cc4=-cc5£©+ lane change 5¸ö²ÎÊı
-% 3: freeway(free lane selection)Ö÷Òª¿¼ÂÇWiedman99Ä£ĞÍ£¬5¸ö²ÎÊıcc0 cc1 cc2 cc4 cc5£¨cc4=-cc5£©+ lane change 5¸ö²ÎÊı
-% 4: footpath(no interaction)   ÕâÒ»°æ±¾µÄ³ÌĞòÔİ²»Éæ¼°ÕâÀàµÀÂ·¼İÊ»ĞĞÎªÄ£ĞÍ²ÎÊıµÄ±ê¶¨   
-% 5: cycle-track(free overtaking)   ÕâÒ»°æ±¾µÄ³ÌĞòÔİ²»Éæ¼°ÕâÀàµÀÂ·¼İÊ»ĞĞÎªÄ£ĞÍ²ÎÊıµÄ±ê¶¨                                                     
-% Get  driving behavior object
 wdb = db{db_def_index};%µÀÂ·¾ùÓĞWiedeman99/74,ºÍ»»µÀ²ÎÊı¡£
+else if edition_number==540
+        db = Vissim.net.DrivingBehaviorParSets;
+        db_def_index = get(Vissim.Net.Links.GetLinkByNumber(1), 'AttValue', 'BEHAVIORTYPE');
+        sprintf('db_def_index=%d\n',db_def_index)
+        %db_def_indexÎª1-6µÄÊı×Ö£¬
+        wdb = db.GetDrivingBehaviorParSetByNumber(db_def_index);%µÀÂ·¾ùÓĞWiedeman99/74,ºÍ»»µÀ²ÎÊı¡£        
+     end  
+end
+
+if edition_number==0
 %Wiedeman 99
 cc0 = wdb.AttValue('W99cc0');
 try
@@ -138,8 +170,29 @@ VehRoutDecLookAhead = wdb.AttValue('VehRoutDecLookAhead');
 CoopLnChgSpeedDiff = wdb.AttValue('CoopLnChgSpeedDiff');
 % Set maximum speed:
 set(Vissim.Simulation, 'AttValue', 'UseMaxSimSpeed', true);
+else 
+    if edition_number==540
+        %Wiedeman 99
+        cc0 = wdb.AttValue('cc0');
+        cc1 = wdb.AttValue('cc1');
+        cc2 = wdb.AttValue('cc2');
+        cc3 = wdb.AttValue('cc3');
+        cc4 = wdb.AttValue('cc4');
+        cc5 = wdb.AttValue('cc5');
+        cc6 = wdb.AttValue('cc6');
+        cc7 = wdb.AttValue('cc7');
+        cc8 = wdb.AttValue('cc8');
+        cc9 = wdb.AttValue('cc9');
+        lcDist = lk.Item(isConnector(1)).AttValue('LANECHANGEDISTANCE');
+        %Wiedeman 74
+        W74ax = wdb.AttValue('AXADD');
+        W74bxAdd = wdb.AttValue('BXADD');
+        W74bxMult = wdb.AttValue('BXMULT');   
+    end
+end
 
 
+if edition_number==0
 % travel time
 if TRAVELTIME==1
 Veh_TT_attributes = Vissim.net.VehicleTravelTimeMeasurement.GetAll;%ËùÓĞĞĞ³ÌÊ±¼äÊôĞÔ
@@ -223,6 +276,87 @@ disp(['¼ÓÈ¨ºóµÄtraffic flow \n:'])
 capacityrealWeightedaverage  =  sum(capacityreal(:,2).*capacityreal(:,3))/sum(capacityreal(:,3))
 TARGET(5) = capacityrealWeightedaverage;
 end
+
+else
+    if edition_number==540
+        % travel time
+        if TRAVELTIME==1
+        Veh_TT_attributes = Vissim.net.TravelTimes;%ËùÓĞĞĞ³ÌÊ±¼äÊôĞÔ
+        T_travel_number = Veh_TT_attributes.count;
+        traveltimereal = zeros(T_travel_number,3);
+        for  Veh_TT_measurement_number=1:T_travel_number
+        disp(['Average T_travel of all simulations and time intervals \n #',num2str(Veh_TT_measurement_number),':']);
+        traveltimereal(Veh_TT_measurement_number,1) = Veh_TT_measurement_number;
+        traveltimereal(Veh_TT_measurement_number,2) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±íÂ·¾¶ĞĞ³ÌÊ±¼äµÄÕæÊµÖµs:');
+        traveltimereal(Veh_TT_measurement_number,3) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±íÂ·¾¶ĞĞ³ÌÊ±¼äµÄÈ¨ÖØ£¨1-10µÄÊı£©:');
+        end
+        disp(['¼ÓÈ¨ºóµÄĞĞ³ÌÊ±¼ä \n:']) 
+        traveltimerealWeightedaverage  =  sum(traveltimereal(:,2).*traveltimereal(:,3))/sum(traveltimereal(:,3));
+        TARGET(1) = traveltimerealWeightedaverage
+        end
+        % Delay
+        if DELAY==1
+        Veh_Delay = Vissim.Net.Delays;
+        delay_number = Veh_Delay.Count;
+        delayreal = zeros(delay_number,3);
+        for  Veh_Delay_number=1:delay_number
+        disp(['Average Delay of all simulations and time intervals \n #',num2str(Veh_Delay_number),':']); 
+        delayreal(Veh_Delay_number,1) = Veh_Delay_number;
+        delayreal(Veh_Delay_number,2) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±íÂ·¾¶ÑÓÎóµÄÕæÊµÖµs:');
+        delayreal(Veh_Delay_number,3) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±íÂ·¾¶ÑÓÎóµÄÈ¨ÖØ£¨1-10µÄÊı£©:');
+        end
+        disp(['¼ÓÈ¨ºóµÄÑÓÎó \n:']) 
+        delayrealWeightedaverage  = sum(delayreal(:,2).*delayreal(:,3))/sum(delayreal(:,3)); 
+         TARGET(2) = delayrealWeightedaverage
+        end
+         % Queue length
+        if QUEUEMAX==1
+        QC = Vissim.net.QueueCounters;
+        m=1;
+        for QC_number = 1:QC.Count
+         disp(['Average maximum Queue length of all simulations and time intervals of Queue Counter\n #',num2str(QC_number),':']);
+         maxQreal(m,1) = QC_number;
+         maxQreal(m,2) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±í³µµÀ×î´óÅÅ¶Ó³¤¶ÈµÄÕæÊµÖµm:');
+         maxQreal(m,3) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±í³µµÀµÄÈ¨ÖØ£¨1-10µÄÊı£©:');
+         m=m+1;
+        end
+        disp(['¼ÓÈ¨ºóµÄ×î´óÅÅ¶Ó³¤¶Èm \n:']) 
+        maxQrealWeightedaverage = sum(maxQreal(:,2).*maxQreal(:,3))/sum(maxQreal(:,3));
+         TARGET(3) = maxQrealWeightedaverage 
+        end
+        if QUEUEMEAN==1
+        QC = Vissim.net.QueueCounters;
+        m=1;
+        for QC_number = 1:QC.Count
+        disp(['Average MEAN Queue length of all simulations and time intervals of Queue Counter #',num2str(QC_number),':'])
+         MEANQreal(m,1) = QC_number;
+         MEANQreal(m,2) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±í³µµÀÆ½¾ùÅÅ¶Ó³¤¶ÈµÄÕæÊµÖµm:');
+         MEANQreal(m,3) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±í³µµÀµÄÈ¨ÖØ£¨1-10µÄÊı£©:');
+        m=m+1;
+        end
+        disp(['¼ÓÈ¨ºóµÄÆ½¾ùÅÅ¶Ó³¤¶Èm \n:']) 
+        MEANQrealWeightedaverage = sum(MEANQreal(:,2).*MEANQreal(:,3))/sum(MEANQreal(:,3));
+        TARGET(4) = MEANQrealWeightedaverage 
+        end
+        % traffic capacity
+        % Data collection
+        if CAPACITY==1
+        dcm = Vissim.net.DataCollections;%ËùÓĞdatacollectionÊôĞÔ
+        dcm_number = dcm.Count;
+        capacityreal = zeros(dcm_number,3);
+        for  dcm_measurement_number=1:dcm_number
+        disp(['traffic flow of all simulations and time intervals \n #',num2str(dcm_measurement_number),':']);
+        capacityreal(dcm_measurement_number,1) = dcm_measurement_number;
+        capacityreal(dcm_measurement_number,2) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±íÂ·¶ÎÁ÷Á¿µÄÕæÊµÖµVEH/H:');
+        capacityreal(dcm_measurement_number,3) = input('ÇëÊäÈëµ±Ç°±àºÅËù´ú±íÂ·¶ÎÁ÷Á¿µÄÈ¨ÖØ£¨1-10µÄÊı£©:');
+        end
+        disp(['¼ÓÈ¨ºóµÄtraffic flow \n:']) 
+        capacityrealWeightedaverage  =  sum(capacityreal(:,2).*capacityreal(:,3))/sum(capacityreal(:,3));
+        TARGET(5) = capacityrealWeightedaverage
+        end        
+    end
+end
+
 %% Ö¸±êÈ¨ÖØÖ¸¶¨
      if  sum(TARGET>0)>=2;
     indectorweighte = zeros(length(TARGET>0),1);   
@@ -251,12 +385,11 @@ end
   end 
     indectorweighte = indectorweighte(indectorweighte(:,1)~=0,1);
  else
-       indectorweighte =ones(length(TARGET>0),1);  
+       indectorweighte =ones(sum(TARGET>0),1);  
   end 
      else
        indectorweighte =1;  
      end
-    
      if  sum(TARGET>0)>=2;
   disp('ÊÇ·ñ°Ñ¶àÄ¿±êÓÅ»¯×ªÎªµ¥Ä¿±êÓÅ»¯ÎÊÌâ£¬Èç¹ûÊÇ£¬ÇëÊäÈë1£¬Èç¹û²»ÊÇÇëÊäÈë0') ;
     tag = input('ÇëÊäÈë1»òÕß0: \n'); 
@@ -264,11 +397,8 @@ end
          tag  = 1;
      end
 
-
-
-
 %% =============  GA Calibration ===================
-
+if edition_number==0   
     if paracalibtag(1)~=0&paracalibtag(3)~=0
     numberOfVariables = sum(tag74)+sum(taglc)-2;
     ub = [2.5, 4.7, 8, 200,300,3, 5,   200, -0.5, 3.5, 0.6, -3, 20];
@@ -326,6 +456,34 @@ end
     parameters1 = parameters1(parameterlist);   
     save('parameters1.mat','parameters1');      
     end
+else
+    if edition_number==540
+        if paracalibtag(1)~=0
+            numberOfVariables = sum(tag74540)-1;
+            ub = [2.5, 4.7, 8];
+            lb = [0.5, 0.7, 1];
+            parameterlist = tag74540(2:end);
+            parameterlist = find(parameterlist==1);
+            ub = ub(1,parameterlist)
+            lb = lb(1,parameterlist)    
+         parameters = [{'AXADD'},{'BXADD'},{'BXMULT'}]'
+         parameters = parameters(parameterlist);
+         save('parameters.mat','parameters'); 
+        end
+        if paracalibtag(2)~=0%wiedeman99
+            numberOfVariables = sum(tag99540)-1;
+            ub = [3.5, 4, 8, -5, -0.15,   7, 15.4, 0.95,5, 2.5];
+            lb = [0.5, 1, 1, -10, -0.7, 0.7, 8.44, 0.15,0, 0.5];
+            parameterlist = tag99540(2:end);
+            parameterlist = find(parameterlist==1);
+            ub = ub(1,parameterlist)
+            lb = lb(1,parameterlist) 
+            parameters = [{'cc0'},{'cc1'},{'cc2'},{'cc3'},{'cc4'},{'cc5'},{'cc6'},{'cc7'},{'cc8'},{'cc9'}]';
+            parameters = parameters(parameterlist);   
+            save('parameters.mat','parameters');    
+        end        
+    end
+end       
         numberOfVariables
 FitnessFunction =@GaCalib_zixuan;
     if  tag==0 
@@ -335,9 +493,15 @@ FitnessFunction =@GaCalib_zixuan;
      options = gaoptimset('PlotFcn',{@gaplotscorediversity , @gaplotbestf},'PopulationSize',20,'Generations',30,'FitnessLimit',0.05);%Ã¿Ò»´úµÃ·ÖµÄÖ±·½Í¼µÃ·ÖºÍplots the best function value versus generation.
      [X,FVAL,EXITFLAG] = ga(FitnessFunction,numberOfVariables,[],[],[],[],lb,ub,[],options);%gaº¯ÊıÄ¬ÈÏÒ»´úÓĞ20¸ö¸öÌå£¬Ò»¹²ÒÅ´«100´ú¡£
     end
-% end
+save('drivingparameters_final.mat','X');
+save('ga_evaluation_fval.mat','FVAL');
+save('ga_stopped_reason.mat','EXITFLAG');
 %% ========================================================================
 % End Vissim
-Vissim.release
+if edition_number == 0;  
+Vissim.release;
+else
+  Vissim.simulation.Stop;  
+end
     
     
